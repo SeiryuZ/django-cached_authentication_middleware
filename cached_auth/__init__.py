@@ -57,6 +57,13 @@ def invalidate_cache(sender, instance, **kwargs):
     cache.delete(key)
 
 
+def set_cached_user(request, user):
+    """ Function to set the cached_user manually """
+    key = CACHE_KEY % request.session[SESSION_KEY]
+    cache.set(key, user)
+    request._cached_user = user
+
+
 def get_cached_user(request):
     if not hasattr(request, '_cached_user'):
         try:
@@ -83,5 +90,8 @@ class Middleware(object):
             post_delete.connect(invalidate_cache, sender=profile_model)
 
     def process_request(self, request):
-        assert hasattr(request, 'session'), "The Django authentication middleware requires session middleware to be installed. Edit your MIDDLEWARE_CLASSES setting to insert 'django.contrib.sessions.middleware.SessionMiddleware'."
+        assert hasattr(request, 'session'), (
+            "The Django authentication middleware requires session middleware "
+            "to be installed. Edit your MIDDLEWARE_CLASSES setting to insert "
+            "'django.contrib.sessions.middleware.SessionMiddleware'.")
         request.user = SimpleLazyObject(lambda: get_cached_user(request))
