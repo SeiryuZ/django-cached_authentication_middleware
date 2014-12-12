@@ -60,6 +60,8 @@ def invalidate_cache(sender, instance, **kwargs):
 def set_cached_user(request, user):
     """ Function to set the cached_user manually """
     key = CACHE_KEY % request.session[SESSION_KEY]
+    if user_preprocessor:
+        user = user_preprocessor(user, request)
     cache.set(key, user)
     request._cached_user = user
 
